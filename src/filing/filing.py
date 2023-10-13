@@ -45,6 +45,7 @@ class Filing:
     def load_boxscores(self) -> pd.DataFrame:
         """
         Loads boxscores already saved on local machine into massive pandas dataframe
+        TODO: Add ability to pass methods to perform on resulting dataframe as parameters
         """
         
         if hasattr(self, 'boxscores'):
