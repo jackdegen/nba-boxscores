@@ -1,3 +1,14 @@
+# Manual additions
+
+# Scrap notebooks to test functions and sandbox to expore ideas
+scrap.ipynb
+*scrape.ipynb
+
+sandbox.ipynb
+*sandbox.ipynb
+
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
