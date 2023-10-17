@@ -14,7 +14,8 @@ INITS_TEAMS = {
     'GSW': 'Golden State Warriors',
     'HOU': 'Houston Rockets',
     'IND': 'Indiana Pacers',
-    'LAC': 'LA Clippers',
+    # 'LAC': 'LA Clippers', # LA Clippers on page with all boxscores on specific date but Los Angeles Clippers on specific boxscore pages
+    'LAC': 'Los Angeles Clippers',
     'LAL': 'Los Angeles Lakers',
     'MEM': 'Memphis Grizzlies',
     'MIA': 'Miami Heat',
