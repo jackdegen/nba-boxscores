@@ -9,7 +9,9 @@ scrap.ipynb
 sandbox.ipynb
 *sandbox.ipynb
 
-
+# Dont want to add all the data
+boxscores/
+data/boxscores/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
