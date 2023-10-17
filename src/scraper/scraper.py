@@ -174,7 +174,7 @@ class Scraper:
             
             self.filing.save_boxscore(df)
         
-        time.sleep(10)
+        time.sleep(5)
         
         return None
 
