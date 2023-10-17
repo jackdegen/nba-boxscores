@@ -12,7 +12,8 @@ class Filing:
         """
 
         self.season = season
-        self.data_dir = os.getcwd().replace('src', 'data')
+        # self.data_dir = os.getcwd().replace('src', 'data')
+        self.data_dir = os.getcwd().split('/src')[0] + '/data' # Better this way than above incase src isn't last directory
         self.season_dir = os.path.join(self.data_dir, season)
         self.boxscores_dir = os.path.join(self.season_dir, 'boxscores')
         
@@ -29,13 +30,17 @@ class Filing:
         return ' '.join(name.split(' ')[:2]).replace('.', '')
 
 
-    def save_boxscore(self, df: pd.DataFrame, away: str, home: str) -> None:
+    def save_boxscore(self, df: pd.DataFrame) -> None:
         """
         Saves boxscore as csv (later on can configure different formats)
-        Saves in form of away-home.csv --> Will never have duplication issues
+        Saves in form of {date}_{team}.csv --> Will never have duplication issues
+            - date will be in .isoformat() so _ better than - in order to quickly separate team from date if necessary
+            - filename.split('_')[0] == date
+            - filename.split('_')[1].split('.')[0] for team without ".csv"
         TODO: Generalize -> save(self, data_category, df, **kwargs) to save things other than boxscores 
         """
-        filename = f'{away}-{home}.csv'
+        
+        filename = f'{df["date"].iloc[0]}_{df["team"].iloc[0]}.csv'
         
         fpath = os.path.join(self.boxscores_dir, filename)
         df.to_csv(fpath, index=False)
