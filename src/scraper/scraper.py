@@ -228,11 +228,11 @@ class Scraper:
                 'html.parser'
             )
 
-            games_played = not bool(len(date_games_soup.find_all('strong', string='No games played on this date.')))
+            game_divs = date_games_soup.find_all('div', class_='game_summary expanded nohover')
 
-            if games_played:
+            if len(game_divs):
             # Naming is a little confusing
-                for game_div in date_games_soup.find_all('div', class_='game_summary expanded nohover'):
+                for game_div in game_divs:
     
                     # URL to boxscore for game on that day
                     # By doing this way, don't have to worry about weird URL formatting, simply getting the link
