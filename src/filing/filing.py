@@ -54,14 +54,14 @@ class Filing:
         """
         
         if hasattr(self, 'boxscores'):
-            return self.boxscores
+            return self.combined
         
-        combined = (pd
-                    .concat([
-                        pd.read_csv(file) # Can take further operations on right here
-                        for file in glob.glob(self.boxscores_dir + '/*.csv')
-                    ])
-                   )
-        self.boxscores = {team_: combined.loc[combined['team']==team_] for team_ in combined['team'].drop_duplicates()}
+        self.combined = (pd
+                         .concat([
+                             pd.read_csv(file) # Can take further operations on right here
+                             for file in glob.glob(self.boxscores_dir + '/*.csv')
+                         ])
+                        )
+        # self.boxscores = {team_: combined.loc[combined['team']==team_] for team_ in combined['team'].drop_duplicates()}
         
-        return self.boxscores
+        return self.combined

@@ -40,9 +40,19 @@ ADV_DATA_STATS = [
     'bpm'
 ]
 
+FOUR_FACTORS_DATA_STATS = [
+    'pace',
+    'efg_pct',
+    'tov_pct',
+    'orb_pct',
+    'ft_rate',
+    'off_rtg',
+]
+
 RENAME_COLUMNS = {
     'ts_pct': 'ts',
     'usg_pct': 'usg',
     'fga3_per_fga_pct': 'fg3_rate',
     'fta_per_fga_pct': 'fta_rate',
+    'team-pace': 'pace'
 }

@@ -28,6 +28,7 @@ from ._dates import (
 from ._info import (
     ADV_DATA_STATS,
     BASIC_DATA_STATS,
+    FOUR_FACTORS_DATA_STATS,
     RENAME_COLUMNS,
 )
 
@@ -48,10 +49,12 @@ class Scraper:
         start_date, end_date = SEASON_DATES[self.season]
         self.season_date_list = [ date_.strftime('%Y-%m-%d') for date_ in pd.date_range(start_date, end_date) ]
 
-        # ff_options = Options()
-        # ff_options.add_argument('--headless')
 
-        # self.driver = webdriver.Firefox(options=ff_options)
+        # Initialize driver to render full webpages
+        ff_options = Options()
+        ff_options.add_argument('--headless')
+
+        self.driver = webdriver.Firefox(options=ff_options)
 
     def clean_name(self, name: str) -> str:
         """
@@ -74,13 +77,21 @@ class Scraper:
     
         return float(stat_val)
 
-    def get_game_boxscores(self, date: str, game_soup) -> pd.DataFrame:
+    def get_game_boxscores(self, date: str, game_soup) -> None:
         """
         Takes BeautifulSoup data from specific game (single webpage) and loads all data into pandas DataFrame
         Will create 2 csv files for every instance function is run
         """
 
         scorebox = game_soup.find_all('div', class_='scorebox')[0]
+
+        # More than four stats lol
+        four_factors_table = game_soup.find('table', id='four_factors').find('tbody')
+    
+        four_factor_stats = {
+            stat: [self.correct_stat(stat, tag.get_text()) for tag in four_factors_table.find_all('td', attrs={'data-stat': stat})]
+            for stat in FOUR_FACTORS_DATA_STATS
+        }
 
         away_team, home_team = [convert_teamname_to_initials(scorebox.find_all('strong')[i].get_text().replace('\n', '')) for i in range(2)]
         away_score, home_score =  [int(score.get_text().replace('\n','')) for score in scorebox.find_all('div', class_='scores')]
@@ -142,6 +153,10 @@ class Scraper:
                 'name': active,
                 'starter': starters,
             }
+
+            # Load team stats from four factors table
+            team_index = 1 if is_home else 0
+            team_stats = {stat: stat_vals[team_index] for stat, stat_vals in four_factor_stats.items()}
     
             # Remove last item from each list because that is team total
             basic_data = {
@@ -158,6 +173,7 @@ class Scraper:
                 **{'date': [date]*num_active},
                 **player_info,
                 **{key: [val]*num_active  for key, val in game_info.items()},
+                **{f'team-{stat}': [stat_val]*num_active for stat, stat_val in team_stats.items()},
                 **basic_data,
                 **adv_data
             }
@@ -174,7 +190,7 @@ class Scraper:
             
             self.filing.save_boxscore(df)
         
-        time.sleep(5)
+        time.sleep(3)
         
         return None
 
@@ -194,7 +210,7 @@ class Scraper:
 
         # Dates in YYYY-MM-DD format
         for date in tqdm(self.season_date_list):
-
+            
             year, month, day = date.split('-')
             
             date_games_url = date_games_url_template.format(month=month, day=day, year=year)
@@ -203,18 +219,23 @@ class Scraper:
                 'html.parser'
             )
 
+            games_played = not bool(len(date_games_soup.find_all('strong', string='No games played on this date.')))
+
+            if games_played:
             # Naming is a little confusing
-            for game_div in date_games_soup.find_all('div', class_='game_summary expanded nohover'):
-
-                # URL to boxscore for game on that day
-                # By doing this way, don't have to worry about weird URL formatting, simply getting the link
-                game_url = root_url + game_div.find('a', text='Box Score')['href']
-                game_soup = BeautifulSoup(
-                    requests.get(game_url).text,
-                    'html.parser'
-                )
-
-                self.get_game_boxscores(date, game_soup)
+                for game_div in date_games_soup.find_all('div', class_='game_summary expanded nohover'):
+    
+                    # URL to boxscore for game on that day
+                    # By doing this way, don't have to worry about weird URL formatting, simply getting the link
+                    game_url = root_url + game_div.find('a', text='Box Score')['href']
+                    self.driver.get(game_url)
+                    game_soup = BeautifulSoup(
+                        # requests.get(game_url).text,
+                        self.driver.page_source,
+                        'html.parser'
+                    )
+    
+                    self.get_game_boxscores(date, game_soup)
             
             # Need to sleep somewhere so requests do not get blocked
             # Selenium causes webscraper to be much slower --> might not need as much time
