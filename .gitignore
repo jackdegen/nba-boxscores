@@ -13,6 +13,10 @@ sandbox.ipynb
 boxscores/
 data/boxscores/*
 
+contest-files/
+data/contest-files/*
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
