@@ -46,9 +46,15 @@ class Scraper:
         # Initialize filing object
         self.filing = Filing(self.season)
 
+        # By default, start_date will be start of season
         start_date, end_date = SEASON_DATES[self.season]
-        self.season_date_list = [ date_.strftime('%Y-%m-%d') for date_ in pd.date_range(start_date, end_date) ]
 
+        # Check to see if any files in boxscores dir so no possible IndexError
+        # If files in boxscores directory, then has been at least partially updated, get most recent date
+        if len([file for file in glob.glob(self.filing.boxscores_dir + '/*.csv')]):
+            start_date = self.filing.most_recent_boxscore_date()
+        
+        self.season_date_list = [ date_.strftime('%Y-%m-%d') for date_ in pd.date_range(start_date, end_date) ]
 
         # Initialize driver to render full webpages
         ff_options = Options()
@@ -177,7 +183,10 @@ class Scraper:
                 **basic_data,
                 **adv_data
             }
-    
+
+            # Playoffs have no bpm
+            team_data = {k: v for k, v in team_data.items() if len(v)}
+            
             # No bonuses added
             df = (pd
                   .DataFrame(team_data)
@@ -190,7 +199,7 @@ class Scraper:
             
             self.filing.save_boxscore(df)
         
-        time.sleep(3)
+        time.sleep(1)
         
         return None
 

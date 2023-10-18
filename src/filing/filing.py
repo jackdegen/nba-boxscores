@@ -1,5 +1,6 @@
 import os
 import glob
+import datetime
 
 import pandas as pd
 
@@ -53,7 +54,7 @@ class Filing:
         TODO: Add ability to pass methods to perform on resulting dataframe as parameters
         """
         
-        if hasattr(self, 'boxscores'):
+        if hasattr(self, 'combined'):
             return self.combined
         
         self.combined = (pd
@@ -62,6 +63,32 @@ class Filing:
                              for file in glob.glob(self.boxscores_dir + '/*.csv')
                          ])
                         )
-        # self.boxscores = {team_: combined.loc[combined['team']==team_] for team_ in combined['team'].drop_duplicates()}
         
         return self.combined
+
+    @classmethod
+    def extract_date_from_file(cls, file: str) -> str:
+        """
+        Extracts date from file path
+        """
+        return file.split('/')[-1].split('_')[0]
+
+    @classmethod
+    def sort_dates(cls, dates: list[str,...]):
+        """
+        Sorts a list of dates in str format
+        Could probably get away without datetime conversions since format of dates
+            - Done this way to be more correct
+            - If date format is changed can simply change that argument and would still work
+        """
+        return [ datetime.datetime.strftime(dto, '%Y-%m-%d') for dto in sorted([datetime.datetime.strptime(date_str, '%Y-%m-%d') for date_str in dates], reverse=True) ]
+
+    def most_recent_boxscore_date(self) -> str:
+        """
+        Returns the last date that boxscores have been scraped for in boxscores directory
+        Purpose of this is to more quickly scrape/update data rather than start from beginning (season start date) each time
+        """
+        return self.sort_dates([self.extract_date_from_file(file) for file in glob.glob(self.boxscores_dir + '/*.csv')])[0]
+        
+        
+        
