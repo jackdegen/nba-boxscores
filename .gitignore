@@ -10,11 +10,10 @@ sandbox.ipynb
 *sandbox.ipynb
 
 # Dont want to add all the data
+# Boxscores can be created with code
+# Don't want to publish contest-data
 boxscores/
-# data/boxscores/*
-
 contest-files/
-# data/contest-files/*
 
 
 # Byte-compiled / optimized / DLL files
