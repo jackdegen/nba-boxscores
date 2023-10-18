@@ -11,10 +11,10 @@ sandbox.ipynb
 
 # Dont want to add all the data
 boxscores/
-data/boxscores/*
+# data/boxscores/*
 
 contest-files/
-data/contest-files/*
+# data/contest-files/*
 
 
 # Byte-compiled / optimized / DLL files
