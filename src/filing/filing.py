@@ -6,17 +6,18 @@ import pandas as pd
 
 class Filing:
 
-    def __init__(self, season: str):
+    def __init__(self, season: str, **kwargs):
         """
         Creates a filing object to save, load, organize, and track data effectively on local machine
         Takes season as single parameter in order to determine starting point for filing operations
         """
-
+        self.site = kwargs.get('site', 'draftkings')
         self.season = season
         # self.data_dir = os.getcwd().replace('src', 'data')
         self.data_dir = os.getcwd().split('/src')[0] + '/data' # Better this way than above incase src isn't last directory
         self.season_dir = os.path.join(self.data_dir, season)
         self.boxscores_dir = os.path.join(self.season_dir, 'boxscores')
+        self.contests_dir = os.path.join(self.season_dir, 'contest-files', self.site, 'main-slate')
         
         # Check to make sure if directories exist, if not create them before doing any further operations
         for directory in (self.data_dir, self.season_dir, self.boxscores_dir):
@@ -65,6 +66,25 @@ class Filing:
                         )
         
         return self.combined
+
+
+    def load_contests(self) -> pd.DataFrame:
+        """
+        Loads contest files already saved on local machine into massive pandas dataframe with parameters set in constructor
+        TODO: Add ability to pass methods to perform on resulting dataframe as parameters
+        """
+        
+        if hasattr(self, 'contests'):
+            return self.contests
+        
+        self.contests = (pd
+                         .concat([
+                             pd.read_csv(file) # Can take further operations on right here
+                             for file in glob.glob(self.contests_dir + '/*.csv')
+                         ])
+                        )
+        
+        return self.contests
 
     @classmethod
     def extract_date_from_file(cls, file: str) -> str:

@@ -1,4 +1,5 @@
 import requests
+import datetime
 import time
 import glob
 
@@ -52,7 +53,8 @@ class Scraper:
         # Check to see if any files in boxscores dir so no possible IndexError
         # If files in boxscores directory, then has been at least partially updated, get most recent date
         if len([file for file in glob.glob(self.filing.boxscores_dir + '/*.csv')]):
-            start_date = self.filing.most_recent_boxscore_date()
+            # start_date = self.filing.most_recent_boxscore_date()
+            start_date = datetime.datetime.strftime(datetime.datetime.strptime(self.filing.most_recent_boxscore_date(), '%Y-%m-%d') + datetime.timedelta(days=1), format='%Y-%m-%d')
         
         self.season_date_list = [ date_.strftime('%Y-%m-%d') for date_ in pd.date_range(start_date, end_date) ]
 
