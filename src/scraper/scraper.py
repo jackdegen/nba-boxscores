@@ -2,6 +2,7 @@ import requests
 import datetime
 import time
 import glob
+import unidecode
 
 import pandas as pd
 pd.set_option('display.max_columns', 100)
@@ -64,15 +65,15 @@ class Scraper:
 
         self.driver = webdriver.Firefox(options=ff_options)
 
-    def clean_name(self, name: str) -> str:
+    @classmethod
+    def clean_name(cls, name: str) -> str:
         """
         Standardizes name across Basketball-Reference, FD, DK
         """
-        clean = ' '.join(name.split(' ')[:2]).replace('.', '')
-        # return standardize_name(clean)
-        return clean
+        return unidecode.unidecode(' '.join(name.split(' ')[:2]).replace('.', ''))
 
-    def correct_stat(self, stat: str, stat_val: int|float|str):
+    @classmethod
+    def correct_stat(cls, stat: str, stat_val: int|float|str):
         if not len(stat_val):
             return 0.0
         
@@ -84,6 +85,27 @@ class Scraper:
             return min_+(sec/60)
     
         return float(stat_val)
+
+    @classmethod
+    def calculate_bonus(cls, row: pd.Series) -> float:
+        """
+        Function to be used with .apply(..., axis=1)
+        Calculates any draftkings bonuses and adds to fpts
+        """
+
+        # Need fpts to be first, order doesn't matter for others
+        fpts, *stats = list(row)
+    
+        # Key: Number of stats gte 10, Value: Bonus for either Double-Double or Triple-Double
+        # No bonus awarded if neither Double-double or triple-double
+        bonus = {
+            # Double-Double bonus = 1.5
+            2: 1.5,
+            # Triple-Double bonus = Double-Double bonus + Triple-Double bonus (3.0)
+            3: 4.5,
+        }.get(len([stat for stat in stats if stat >= 10]), 0.0)
+        
+        return fpts + bonus
 
     def get_game_boxscores(self, date: str, game_soup) -> None:
         """
@@ -198,6 +220,10 @@ class Scraper:
                       fd_fpts=lambda df_: df_.pts + 1.2*df_.trb + 1.5*df_.ast + 3.0*df_.stl + 3.0*df_.blk - 1.0*df_.tov
                   )
                  )
+
+            # Add bonus for DraftKings
+            # Decided to perform here so each .csv file can be accurate on its own, not later on when cleaned up
+            df['dk_fpts'] = df[['dk_fpts', 'pts', 'ast', 'trb']].apply(self.calculate_bonus, axis=1)
             
             self.filing.save_boxscore(df)
         
